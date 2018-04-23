@@ -1,0 +1,23 @@
+*.DS_*
+# node:
+**/node_modules
+src/main/webapp/assets/package-lock.json
+
+#maven:
+/target/
+
+#log
+/log/
+/bin/
+c:
+#eclipse
+*.classpath
+*.project
+.settings
+target
+/.tomcatplugin
+*.bat
+*.log.*
+
+#idea
+.idea/
