@@ -1,10 +1,11 @@
 const router = require('koa-router')();
-const rawBody = require('raw-body')
+const getRawBody = require('raw-body')
 const tpl = require('../util/tpl')
 const config = require('../config/config')
 const Wechat = require('../wechat/wechat')
 const wechat = new Wechat(config)
 const wexinReply = require('../wechat/reply')
+const contentType = require('content-type')
 const sha1 = require('sha1')
 const ejs = require('ejs')
 
@@ -30,7 +31,7 @@ var _sign = function (noncestr, ticket, timestamp, url) {
 function sign(ticket, url) {
   var noncestr = createNonce();
   var timestamp = createTimestamp();
-  var signature = _sign(noncestr,ticket, timestamp, url);
+  var signature = _sign(noncestr, ticket, timestamp, url);
   return {
     noncestr: noncestr,
     timestamp: timestamp,
@@ -45,12 +46,13 @@ router.get('/', async (ctx, next) => {
   const echostr = ctx.query.echostr || ''
 
   const token = config.token || ''
-  const str = [token,timestamp,nonce].sort().join('')
+  const str = [token, timestamp, nonce].sort().join('')
   const sha = sha1(str)
 
   ctx.body = (sha === signature) ? echostr + '' : 'failed'
 
 })
+
 router.get('/movie', async (ctx) => {
   var access_token = wechat.access_token;
   var ticket = await wechat.fetchTicket(access_token);
@@ -58,13 +60,16 @@ router.get('/movie', async (ctx) => {
   var params = sign(ticket.ticket, ctx.href);
   ctx.body = ejs.render(tpl.temTpl, params);
 })
+
 router.post('/', async (ctx) => {
   //通过raw-body模块接收接口传过来的xml数据
-  console.log(ctx.req.headers['content-length'])
-  var data = await rawBody(ctx.req,{length:ctx.req.headers['content-length'],limit:'1mb',encoding:ctx.charset});
-  console.log(data)
+  var data = await getRawBody(ctx.req, {
+    length: ctx.req.headers['content-length'],
+    limit: '1mb',
+    encoding: contentType.parse(ctx.req).parameters.charset || 'utf-8'
+  })
   var jsonObj = tpl.xmlToJson(data);
-
+  console.log(jsonObj.xml)
   var reply = await wexinReply.reply(jsonObj.xml);
   ctx.status = 200;
   ctx.type = 'application/xml';

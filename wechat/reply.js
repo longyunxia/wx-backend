@@ -5,7 +5,6 @@ const config = require('../config/config')
 const menu = require('./menu')
 const Wechat = require('./wechat')
 const wechat = new Wechat(config)
-
 setTimeout(async ()=> {
     await wechat.deleteDefineMenu();
     await wechat.createDefineMenu(menu);

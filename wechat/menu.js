@@ -50,17 +50,7 @@ module.exports = {
                 "name": "发送位置", 
                 "type": "location_select", 
                 "key": "location_select"
-            }, 
-            {
-                "type": "media_id", 
-                "name": "图片", 
-                "media_id": "TH4XgB4RG5AAkADTZaafLP1z76CBaqbyh5pKgdqXgnA"
-             }, 
-             {
-                "type": "view_limited", 
-                "name": "图文消息", 
-                "media_id": "TH4XgB4RG5AAkADTZaafLMkr0doJ4eNH_OdjMYbGook"
-             },
+            },
              {	
                 "type":"view",
                 "name":"语音搜索",

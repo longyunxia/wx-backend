@@ -3,9 +3,8 @@ const ticket_file = path.join(__dirname, '../util/ticket.txt')
 const util = require('../util/accessTxt')
 const config = {
   port: '80',
-
-  appID:'wx1d16be82d72d5085',
-  appSecret:'6a2dd0b0de7063074371a6c80fec5460',
+  appID:'wx9e7ed7f7fafb8def',
+  appSecret:'841a923eaa23c325299f3e6fde8b4988',
   token:'weixin',
   //获取access_token
   getAccessToken: function () {

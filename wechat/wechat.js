@@ -50,7 +50,7 @@ var api = {
   },
   //标签
   tags: {
-    createTag:  prefix + 'tags/create?',                         //创建标签
+    createTag: prefix + 'tags/create?',                         //创建标签
     inquiryTag: prefix + 'tags/get?',                            //查询用户标签
     editTag: prefix + 'tags/update?',                            //编辑用户标签
     deleteTag: prefix + 'tags/delete?',                          //删除用户标签
@@ -72,7 +72,7 @@ var api = {
     setTemp: prefix + 'template/api_set_industry?',              //设置所属行业
     getTemp: prefix + 'template/get_industry?',                  //获取设置的行业信息
     getTempId: prefix + 'template/api_add_template?',            //获取模板ID
-    fetchTempList: prefix +'template/get_all_private_template?', //获取模板列表
+    fetchTempList: prefix + 'template/get_all_private_template?', //获取模板列表
     delMessTemp: prefix + 'template/del_private_template?',      //删除模板
     sendTempMess: prefix + 'message/template/send?',             //发送模板消息
   },
@@ -87,7 +87,7 @@ var api = {
   manage: {
     createQrcodeTicket: prefix + 'qrcode/create?',         //请求二维码的 ticket
     createQrcode: prefix + 'showqrcode?',                  //通过ticket获取二维码
-    changeToShort:prefix + 'shorturl?',                    //长连接转成短连接
+    changeToShort: prefix + 'shorturl?',                    //长连接转成短连接
   },
   ticket: {
     get: prefix + 'ticket/getticket?',                            //获取全局票据
@@ -114,14 +114,15 @@ function httpRequest(options, msg) {
     request(options)
       .then(function (response) {
         var _data = response.body
-        if(_data) {
+        if (_data) {
           resolve(_data)
-        }else {
+        } else {
           throw new Error(msg + '  error')
         }
       })
       .catch(function (err) {
-        reject(err)
+        reject(err);
+        console.log('err', err)
       })
   })
 }
@@ -138,23 +139,28 @@ Wechat.prototype = {
 
     return new Promise(function (resolve, reject) {
       fs.readFile(wechat_file, {flag: 'r+', encoding: 'utf8'}, function (err, data) {
-        if(err) {
+        if (err) {
           console.error(err);
           reject(err);
         }
-        if(data.length !== 0 && eval('('+ data + ')').expires_in > (new Date().getTime()))  {
-          that.access_token = eval('('+ data + ')').access_token || '';
+        if (data.length !== 0 && eval('(' + data + ')').expires_in > (new Date().getTime())) {
+          that.access_token = eval('(' + data + ')').access_token || '';
+          console.log('===access_token get from file', that.access_token)
           resolve(data);
         } else {
-          request({ url: url,json: true })
+          request({url: url, json: true})
             .then(function (response) {
               var responseData = response.body;
+              if (responseData.errcode != 0) {
+                reject(responseData)
+              }
               that.access_token = responseData.access_token || '';
+              console.log('====access_token get from server', that.access_token)
               responseData.expires_in = new Date().getTime() + 7100 * 1000
               //flag: 'w'会清空文件然后写入, flag: 'a' 会在文件原有内容后追加写入 ,flag: 'r' 代表读取文件
               fs.writeFile(wechat_file, JSON.stringify(responseData), {flag: 'w'}, function (err) {
-                if(err) {
-                  console.error(err)
+                if (err) {
+                  console.error('writeFile err', err)
                   reject(err)
                 } else {
                   resolve(responseData)
@@ -177,14 +183,14 @@ Wechat.prototype = {
   searchMovies: function (sign, name) {
     var that = this;
     var url = '';
-    if(sign === '1') {
-      url = api.searchMovie + 'q='+ name + '&start=0&count=5';   //根据字符串搜索电影
-    } else if(sign === '2'){
-      url = api.searchMovie + 'tag='+ name + '&start=0&count=5';  //根据分类搜索电影
+    if (sign === '1') {
+      url = api.searchMovie + 'q=' + name + '&start=0&count=5';   //根据字符串搜索电影
+    } else if (sign === '2') {
+      url = api.searchMovie + 'tag=' + name + '&start=0&count=5';  //根据分类搜索电影
     } else {
       url = api.top250 + '&start=0&count=5';
     }
-    var options = { url: url,json: true };
+    var options = {url: url, json: true};
     return httpRequest(options, 'searchMovies');
   },
   //在原型链上增加一个方法,获取微信服务器的IP地址列表
@@ -197,119 +203,133 @@ Wechat.prototype = {
 
   //在原型链上增加一个方法,创建自定义菜单
   createDefineMenu: function (menu) {
-    var that = this,url = api.menu.createMenu + 'access_token=' + that.access_token;
+    var that = this;
+    console.log('createDefineMenu that.access_token', that.access_token)
+    var url = api.menu.createMenu + 'access_token=' + that.access_token;
     var options = {method: 'POST', url: url, body: menu, json: true};
-    return httpRequest(options, 'createDefineMenu');
+    console.log(url,menu)
+    return httpRequest(options, 'createDefineMenu').then(response => {
+      console.log('createDefineMenu',response)
+    });
   },
 
   //在原型链上增加一个方法,查询自定义菜单
   inquiryDefineMenu: function () {
-    var that = this,url = api.menu.inquiryMenu + 'access_token=' + data.access_token;
+    var that = this, url = api.menu.inquiryMenu + 'access_token=' + data.access_token;
     var options = {method: 'GET', url: url, json: true};
     return httpRequest(options, 'inquiryDefineMenu');
   },
 
   //在原型链上增加一个方法, 删除自定义菜单
   deleteDefineMenu: function () {
-    var that = this,url = api.menu.deleteMenu + 'access_token=' + that.access_token;
+    var that = this, url = api.menu.deleteMenu + 'access_token=' + that.access_token;
     var options = {method: 'GET', url: url, json: true}
     return httpRequest(options, 'deleteDefineMenu');
   },
 
   //在原型链上增加一个方法, 获取自定义菜单的配置信息
   getConfigMess: function () {
-    var that = this,url = api.menu.getCofigMess + 'access_token=' + that.access_token;
-    var options ={method: 'GET', url: url, json: true};
+    var that = this, url = api.menu.getCofigMess + 'access_token=' + that.access_token;
+    var options = {method: 'GET', url: url, json: true};
     return httpRequest(options, 'getConfigMess');
   },
 
   //在原型链上增加一个方法,创建个性化菜单
   createSpecialMenu: function (menu) {
-    var that = this,url = api.specialMenu.createMenu + 'access_token=' + that.access_token;
+    var that = this, url = api.specialMenu.createMenu + 'access_token=' + that.access_token;
     var options = {method: 'POST', url: url, body: menu, json: true}
     return httpRequest(options, 'createSpecialMenu');
   },
 
   //在原型链上增加一个方法, 删除个性化菜单
   deleteSpecialMenu: function (menuId) {
-    var that = this,url = api.specialMenu.deleteMenu + 'access_token=' + that.access_token;
+    var that = this, url = api.specialMenu.deleteMenu + 'access_token=' + that.access_token;
     var options = {method: 'GET', url: url, body: menuId, json: true};
     return httpRequest(options, 'deleteSpecialMenu');
   },
 
   //在原型链上增加一个方法, 创建用户标签
   createTag: function (tagName) {
-    var that = this,url = api.tags.createTag + 'access_token=' + data.access_token;
-    var options = { method: 'POST', url: url, body: { access_token: data.access_token,name: tagName }, json: true };
+    var that = this, url = api.tags.createTag + 'access_token=' + data.access_token;
+    var options = {method: 'POST', url: url, body: {access_token: data.access_token, name: tagName}, json: true};
     return httpRequest(options, 'createTag');
   },
 
   //在原型链上增加一个方法,查询用户标签
   inquiryTags: function () {
-    var that = this,url = api.tags.inquiryTag + 'access_token=' + that.access_token;
+    var that = this, url = api.tags.inquiryTag + 'access_token=' + that.access_token;
     var options = {method: 'GET', url: url, json: true}
     return httpRequest(options, 'inquiryTags');
   },
 
   //在原型链上增加一个方法, 编辑用户标签
   editTag: function (tagId, tagName) {
-    var that = this,url = api.tags.editTag + 'access_token=' + that.access_token;
-    var options = { method: 'POST', url: url, body: { tag : { id : tagId, name : tagName } }, json: true }
+    var that = this, url = api.tags.editTag + 'access_token=' + that.access_token;
+    var options = {method: 'POST', url: url, body: {tag: {id: tagId, name: tagName}}, json: true}
     return httpRequest(options, 'editTag');
   },
 
   //在原型链上增加一个方法, 删除用户标签
   deleteTag: function (tagId) {
-    var that = this,url = api.tags.deleteTag + 'access_token=' + that.access_token;
-    var form = { tags: { id: tagId } }, options = { method: 'POST', url: url, body: form, json: true };
+    var that = this, url = api.tags.deleteTag + 'access_token=' + that.access_token;
+    var form = {tags: {id: tagId}}, options = {method: 'POST', url: url, body: form, json: true};
     return httpRequest(options, 'deleteTag');
   },
 
   //在原型链上增加一个方法, 获取标签下粉丝列表
   getTagFuns: function (tagId, nextOpenId) {
-    var that = this,url = api.tags.getTagFans + 'access_token=' + that.access_token;
-    var form = { tags: { id: tagId, next_openid: nextOpenId || null } }, options = {method: 'POST', url: url, body: form, json: true};
+    var that = this, url = api.tags.getTagFans + 'access_token=' + that.access_token;
+    var form = {tags: {id: tagId, next_openid: nextOpenId || null}},
+      options = {method: 'POST', url: url, body: form, json: true};
     return httpRequest(options, 'getTagFuns');
   },
 
   //在原型链上增加一个方法, 批量为用户创建标签
   batchTagUers: function (tagId, openidList) {
     var that = this, url = api.tags.batchTagUers + 'access_token=' + that.access_token;
-    var form = { tagid: tagId, openid_list: openidList || null }, options = {method: 'POST', url: url, body: form, json: true};
+    var form = {tagid: tagId, openid_list: openidList || null},
+      options = {method: 'POST', url: url, body: form, json: true};
     return httpRequest(options, 'batchTagUers');
   },
 
   //在原型链上增加一个方法, 批量为用户取消标签
   batchCancelTag: function (tagId, openidList) {
     var that = this, url = api.tags.batchCancelTag + 'access_token=' + that.access_token;
-    var form = { tagid: tagId, openid_list: openidList || null }, options = {method: 'POST', url: url, body: form, json: true};
+    var form = {tagid: tagId, openid_list: openidList || null},
+      options = {method: 'POST', url: url, body: form, json: true};
     return httpRequest(options, 'batchCancelTag');
   },
 
   //在原型链上增加一个方法, 获取用户身上的标签列表
   fetchUserTags: function (openId) {
     var that = this, url = api.tags.fetchUserTags + 'access_token=' + that.access_token;
-    var form = { openid: openId }, options = {method: 'POST', url: url, body: form, json: true};
+    var form = {openid: openId}, options = {method: 'POST', url: url, body: form, json: true};
     return httpRequest(options, 'fetchUserTags');
   },
 
   //在原型链上增加一个方法, 设置用户备注名
   remarkUser: function (openId, remark) {
     var that = this, url = api.user.remarkUser + 'access_token=' + that.access_token;
-    var options = { method: 'POST', url: url, body: { access_token:  data.access_token,openid: openId,remark: remark }, json: true };
+    var options = {
+      method: 'POST',
+      url: url,
+      body: {access_token: data.access_token, openid: openId, remark: remark},
+      json: true
+    };
     return httpRequest(options, 'remarkUser');
   },
 
   //在原型链上增加一个方法, 获取用户基本信息
   fetchUserMess: function (openId, lang) {
-    var that = this, url = api.user.fetchUserMess + 'access_token=' + that.access_token + '&openid=' + openId + '&lang=' + lang;
+    var that = this,
+      url = api.user.fetchUserMess + 'access_token=' + that.access_token + '&openid=' + openId + '&lang=' + lang;
     var options = {method: 'GET', url: url, json: true};
     return httpRequest(options, 'fetchUserMess');
   },
 
   //在原型链上增加一个方法, 获取用户列表
   getUserList: function (nextOpenId) {
-    var that = this,url = api.user.getUserList + 'access_token=' + that.access_token;
+    var that = this, url = api.user.getUserList + 'access_token=' + that.access_token;
     var options = {method: 'GET', url: url, json: true};
     return httpRequest(options, 'getUserList');
   },
@@ -322,18 +342,18 @@ Wechat.prototype = {
     var form = {}
     var uploadUrl = api.temporary.upload
     //通过第三个参数判断上传的素材是临时素材还是永久素材
-    if(permanent) {
+    if (permanent) {
       //如果是非图文的永久素材上传则使用这个接口
       uploadUrl = api.permanent.upload
       //想让form能够兼容到所有的上传类型,包括图文消息.所以需要一个中间件,来让form来继承permanent对象
       _.extend(form, permanent)
     }
 
-    if( type === 'image' && !permanent) {
+    if (type === 'image' && !permanent) {
       //上传类型为图文消息里面的图片
       uploadUrl = api.temporary.upload
     }
-    if(type === 'news') {
+    if (type === 'news') {
       //上传类型为图文消息,material就是一个article数组
       uploadUrl = api.permanent.uploadNews
       form = material
@@ -344,18 +364,18 @@ Wechat.prototype = {
     //拿到全局票据,构建请求的URL地址
     var url = uploadUrl + '&access_token=' + that.access_token
     //判断是否为永久素材
-    if(!permanent) {
+    if (!permanent) {
       url += '&type=' + type
-    } else if(permanent && type != 'news') {
+    } else if (permanent && type != 'news') {
       form.access_token = that.access_token
     }
     var options = {
-      method:'POST',
+      method: 'POST',
       url: url,
       json: true
     }
     //当上传素材为图文的时候,我们请求上传的就不是form,而是body
-    if(type === 'news') {
+    if (type === 'news') {
       options.body = form
     } else {
       options.formData = form
@@ -366,42 +386,47 @@ Wechat.prototype = {
   //在wechat的原型链上增加 群发消息 上传图文消息素材
   uploadNewsQunfa: function (articles) {
     var that = this, url = api.temporary.uploadNews + '&access_token=' + that.access_token;
-    var options = { method:'POST', url: url, body: articles, json: true }
+    var options = {method: 'POST', url: url, body: articles, json: true}
     return httpRequest(options, 'uploadNewsQunfa');
   },
 
   //在wechat的原型链上增加 群发消息 根据用户标签进行群发
   sendMessByTag: function (postData) {
     var that = this, url = api.message.sendMessByTag + '&access_token=' + that.access_token;
-    var options = { method:'POST', url: url, body: postData, json: true }
+    var options = {method: 'POST', url: url, body: postData, json: true}
     return httpRequest(options, 'sendMessByTag');
   },
 
   //在wechat的原型链上增加 群发消息 根据openID列表进行群发
   sendMessByOpenID: function (postData) {
     var that = this, url = api.message.sendMessByOpenID + '&access_token=' + that.access_token;
-    var options = { method:'POST', url: url, body: postData, json: true };
+    var options = {method: 'POST', url: url, body: postData, json: true};
     return httpRequest(options, 'sendMessByOpenID');
   },
 
   //在wechat的原型链上增加 群发消息 删除群发 只能删除图文消息和视频消息
   deleteMessByID: function (postData) {
     var that = this, url = api.message.deleteMess + '&access_token=' + that.access_token;
-    var options = { method:'POST', url: url, body: postData, json: true };
+    var options = {method: 'POST', url: url, body: postData, json: true};
     return httpRequest(options, 'deleteMessByID');
   },
 
   //在wechat的原型链上增加 群发消息 预览消息接口
   priviewMess: function (postData) {
     var that = this, url = api.message.priviewMess + '&access_token=' + that.access_token;
-    var options = { method:'POST', url: url, body: postData,json: true };
+    var options = {method: 'POST', url: url, body: postData, json: true};
     return httpRequest(options, 'priviewMess');
   },
 
   //在wechat的原型链上增加 上传图文消息的图片获取URL
   getMaterialImgUrl: function (imgPath) {
-    var that = this, formData = { media: fs.createReadStream(imgPath) };
-    var options = { method:'POST', url: api.temporary.getImgUrl + 'access_token=' + that.access_token, formData: formData, json: true };
+    var that = this, formData = {media: fs.createReadStream(imgPath)};
+    var options = {
+      method: 'POST',
+      url: api.temporary.getImgUrl + 'access_token=' + that.access_token,
+      formData: formData,
+      json: true
+    };
     return httpRequest(options, 'getMaterialImgUrl');
   },
 
@@ -409,16 +434,18 @@ Wechat.prototype = {
   fetchMaterial: function (mediaId, type, permanent) {
     var that = this, form = {}, fetchdUrl = api.temporary.fetch;
     //通过第三个参数判断上传的素材是临时素材还是永久素材
-    if(permanent) { fetchdUrl = api.permanent.fetch; }
+    if (permanent) {
+      fetchdUrl = api.permanent.fetch;
+    }
     var url = fetchdUrl + '&access_token=' + that.access_token;
     return new Promise(function (resolve, reject) {
       var options = {};
       //判断是否为永久素材
-      if(!permanent) {
-        if(type === 'video') {
+      if (!permanent) {
+        if (type === 'video') {
           url = url.replace('https://', 'http://')
         }
-        url += '&media_id='+ mediaId
+        url += '&media_id=' + mediaId
         options = {method: 'GET', url: url, json: true};
       } else {
         form = {
@@ -427,7 +454,7 @@ Wechat.prototype = {
         }
         options = {method: 'GET', url: url, body: form, json: true};
       }
-      if(type === 'news' || type === 'video') {
+      if (type === 'news' || type === 'video') {
         return httpRequest(options, 'fetchMaterial');
       } else {
         resolve(url)
@@ -442,7 +469,7 @@ Wechat.prototype = {
   deletehMaterial: function (mediaId, type) {
     //更新的时候去请求一下获取access_token的接口
     var that = this, deletedUrl = api.permanent.delete, url = deletedUrl + '&access_token=' + that.access_token;
-    var options = { method:'POST', url: url, body: {"media_id":mediaId},json: true };
+    var options = {method: 'POST', url: url, body: {"media_id": mediaId}, json: true};
     return httpRequest(options, 'deletehMaterial');
   },
 
@@ -451,7 +478,7 @@ Wechat.prototype = {
     var that = this, form = {}
     _.extend(form, news)
     var url = modifyUrl + '&access_token=' + that.access_token, modifyUrl = api.permanent.modify;
-    var options = { method:'POST', url: url, ody: form,json: true };
+    var options = {method: 'POST', url: url, ody: form, json: true};
     return httpRequest(options, 'modifyhMaterial');
   },
 
@@ -466,12 +493,12 @@ Wechat.prototype = {
   //在wechat的原型链上增加一个获取永久素材的总数
   getBatchMaterial: function (params) {
     //更新的时候去请求一下获取access_token的接口
-    var that = this, batchUrl = api.permanent.batch,form = {};
+    var that = this, batchUrl = api.permanent.batch, form = {};
     form.type = params.type || 'image'
     form.offset = params.offset || 0
     form.count = options.count || 1
     var url = batchUrl + '&access_token=' + that.access_token,
-      options = { method: 'POST', url: url, body: form, json: true };
+      options = {method: 'POST', url: url, body: form, json: true};
     return httpRequest(options, 'getBatchMaterial');
   },
 
@@ -483,10 +510,10 @@ Wechat.prototype = {
         try {
           data = JSON.parse(data)
         }
-        catch(e) {
+        catch (e) {
           return that.updateTicket()
         }
-        if(that.isValidTicket(data)) {
+        if (that.isValidTicket(data)) {
           //如果是有效的token,则将data向下传递
           return Promise.resolve(data)
         } else {
@@ -509,7 +536,7 @@ Wechat.prototype = {
     var that = this, url = api.ticket.get + '&access_token=' + that.access_token + '&type=jsapi';
 
     return new Promise(function (resolve, reject) {
-      request({ url: url,json: true })
+      request({url: url, json: true})
         .then(function (response) {
           var data = response.body
           var now = (new Date().getTime())
@@ -525,12 +552,12 @@ Wechat.prototype = {
 
   //在wechat的原型链上增加一个方法 判断全局票据是否合法
   isValidTicket: function (data) {
-    if(!data || !data.ticket || !data.expires_in) {
+    if (!data || !data.ticket || !data.expires_in) {
       return false
     }
     var now = new Date().getTime()
     //当前时间小于有效期即为有效
-    return (data.ticket  && now < data.expires_in) ? true : false;
+    return (data.ticket && now < data.expires_in) ? true : false;
   },
 
   //在原型链上增加一个方法, 消息模板  设置所属行业
@@ -570,7 +597,8 @@ Wechat.prototype = {
 
   //在原型链上增加一个方法, 消息模板  发送模板消息
   sendMessTemp: function (userID) {
-    var that = this, form =  { "touser": userID, "template_id":"-TN_DiqZp1SmgCJf-viHohGEPtysBP-P5fWYTprJqiM", "data":{} },
+    var that = this,
+      form = {"touser": userID, "template_id": "-TN_DiqZp1SmgCJf-viHohGEPtysBP-P5fWYTprJqiM", "data": {}},
       url = api.messTemp.sendTempMess + 'access_token=' + that.access_token,
       options = {method: 'POST', url: url, body: form, json: true};
     return httpRequest(options, 'sendMessTemp');
@@ -599,14 +627,13 @@ Wechat.prototype = {
 
   //在原型链上增加一个方法 语义理解接口
   semanticPrefix: function (yuyiData) {
-    var url = api.semanticPrefix + 'access_token=' + that.access_token,
-      that = this
-    options = {method: 'POST', url: url, body: yuyiData, json: true};
+    var url = api.semanticPrefix + 'access_token=' + this.access_token,
+
+      options = {method: 'POST', url: url, body: yuyiData, json: true};
     return httpRequest(options);
   }
 
 }
-
 
 
 module.exports = Wechat
