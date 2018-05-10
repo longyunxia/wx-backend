@@ -51,10 +51,15 @@ module.exports = {
                 "type": "location_select", 
                 "key": "location_select"
             },
-             {	
-                "type":"view",
-                "name":"语音搜索",
-                "url":"http://801c8dca.ngrok.io/movie"
+             {
+               "type":"view",
+               "name":"进入商城",
+               "url":"http://116.62.201.197/mall"
+             },
+             {
+               "type":"view",
+               "name":"语音搜索",
+               "url":"http://116.62.201.197/voice"
              }
             ] 
            

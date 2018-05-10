@@ -7,7 +7,7 @@ const wechat = new Wechat(config)
 const wexinReply = require('../wechat/reply')
 const contentType = require('content-type')
 const sha1 = require('sha1')
-const ejs = require('ejs')
+
 
 //生成随机字符串
 var createNonce = function () {
@@ -53,12 +53,14 @@ router.get('/', async (ctx, next) => {
 
 })
 
-router.get('/movie', async (ctx) => {
+router.get('/voice', async (ctx) => {
+  console.log('/voice')
   var access_token = wechat.access_token;
   var ticket = await wechat.fetchTicket(access_token);
 
   var params = sign(ticket.ticket, ctx.href);
-  ctx.body = ejs.render(tpl.temTpl, params);
+  /*ctx.body = ejs.render(tpl.temTpl, params);*/
+  await ctx.render('voice', params);
 })
 
 router.post('/', async (ctx) => {
