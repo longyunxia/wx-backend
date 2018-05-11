@@ -7,7 +7,7 @@
 </head>
 <body style="width:100%;text-align: center;">
 <div id="luyin" >
-    <img style="width: 250px;" src="http://img2.imgtn.bdimg.com/it/u=3123382737,2199851626&fm=214&gp=0.jpg" />
+    <img style="width: 250px;" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1526029093254&di=a7dea6ad9943024cbe74cfa35103f740&imgtype=0&src=http%3A%2F%2Ftaobao.90sheji.com%2F58pic%2F13%2F75%2F46%2F28B58PIChJR.png" />
 </div>
 <p style="text-align: center;color: #cccccc;font-size: 12px;">点击图片录音</p>
 <p id="title"></p>
@@ -77,7 +77,6 @@
       wx.stopRecord({
         success: function (res) {
           var localId = res.localId;
-          alert(localId);
           wx.translateVoice({
             localId: localId,
             isShowProgressTips: 1,
@@ -93,18 +92,16 @@
                   console.log(subject.title);
                   $('#director').html('导演: ' + subject.directors[0].name);
                   $('#year').html('上映年份: ' + subject.year);
-                  $('#poster').html('<p>宣传海报: </p>' + '<img src="'+ subject.images.large +'" />');
+                  $('#poster').html('<p>宣传海报: </p>' + '<a href="'+subject.alt+'"><img src="'+ subject.images.large +'" /></a>');
                   shareContent = {
                     title: subject.title,
                     desc: '我搜出来了 '+ subject.title,
-                    link: 'http://801c8dca.ngrok.io/movie',
+                    link: 'http://116.62.201.197/voice',
                     imgUrl: subject.images.large,
                     type: 'link',
                     success: function () {
-                      window.alert('分享成功!');
                     },
                     cancel: function () {
-                      window.alert('分享失败!');
                     }
                   }
                   wx.onMenuShareAppMessage(shareContent);
@@ -122,7 +119,6 @@
           })
         }
       })
-
 
     })
   })

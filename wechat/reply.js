@@ -28,7 +28,7 @@ exports.reply = async function (obj) {
         '<FromUserName><![CDATA[' + message.ToUserName + ']]></FromUserName>' +
         '<CreateTime>' + now + '</CreateTime>' +
         '<MsgType><![CDATA[text]]></MsgType>' +
-        '<Content><![CDATA[后台回复 [1]: 木子水吉最棒棒~\n后台回复 [2]: 木子水吉最优秀~\n后台回复 [3]: 木子水吉最漂亮~\n后台回复 [4]: 木子水吉我爱你~\n后台回复 [首页]: 进入电影首页~\n后台回复 [登录]: 进行微信登录绑定~\n后台回复 [游戏]: 进入游戏页面~\n后台回复 [电影名字]: 查询电影信息~\n后台回复 [语音]: 查询电影信息~\n也可以点击 <a href="http://www.baidu.com">  语音查电影</a>\n]]></Content>' +
+        '<Content><![CDATA[欢迎关注测试公众号哈，希望你在这里能找到你想要的电影\n也可以点击 <a href="http://116.62.201.197/voice">  语音查电影</a>\n]]></Content>' +
         '</xml>';
     }
     else if (message.Event === 'unsubscribe') { //取消订阅

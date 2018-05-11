@@ -8,6 +8,10 @@ const wexinReply = require('../wechat/reply')
 const contentType = require('content-type')
 const sha1 = require('sha1')
 
+const Promise = require('bluebird')
+//该操作可以将原本的request方法封装成一个promise函数
+const request = Promise.promisify(require('request'))
+
 
 //生成随机字符串
 var createNonce = function () {
@@ -57,9 +61,8 @@ router.get('/voice', async (ctx) => {
   console.log('/voice')
   var access_token = wechat.access_token;
   var ticket = await wechat.fetchTicket(access_token);
-
   var params = sign(ticket.ticket, ctx.href);
-  /*ctx.body = ejs.render(tpl.temTpl, params);*/
+
   await ctx.render('voice', params);
 })
 
@@ -76,6 +79,19 @@ router.post('/', async (ctx) => {
   ctx.status = 200;
   ctx.type = 'application/xml';
   ctx.body = reply;
+})
+
+router.get('/mall', async (ctx) => {
+  console.log('/mall')
+  console.log(ctx.query)
+  var url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + config.appID + '&secret=' + config.appSecret + '&code=' + ctx.query.code + '&grant_type=authorization_code'
+  var tokenResponse = await request({method: 'GET', url: url, json: true})
+  var _data = tokenResponse.body;
+  console.log(_data)
+  var userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?access_token="+_data.access_token+"&openid="+config.appID+"&lang=zh_CN"
+  var userInfo = await  request({method: 'GET', url: userInfoUrl, json: true})
+  console.log(userInfo.body)
+  await ctx.render('mall', {userInfo: userInfo.body});
 })
 
 module.exports = router
