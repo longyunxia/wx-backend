@@ -62,6 +62,7 @@ router.get('/voice', async (ctx) => {
   var access_token = wechat.access_token;
   var ticket = await wechat.fetchTicket(access_token);
   var params = sign(ticket.ticket, ctx.href);
+  params.appId = config.appID;
 
   await ctx.render('voice', params);
 })
